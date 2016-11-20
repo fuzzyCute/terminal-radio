@@ -241,10 +241,8 @@ def radios_menu(genre_name, is_search = ""):
 	
 		classes = lxml.html.fromstring(requests.post('https://www.xatworld.com/radio-search/', data={'search' : 'simple' , 'genre' : genre_name}).text)
 
-	
 		for form in classes.xpath('//td[@class="centerTxt"]'):
 			if len(form) == 16 or len(form) == 15:
-				print form.text_content()
 				r_genre = []
 				text = [line for line in form.text_content().split('\n') if line.strip() != '']
 				r_genre.append(text[0].lstrip()[9:35])
@@ -316,7 +314,7 @@ def play_radio(radio_ip):
 		player = "Windows Music Player"
 		
 	
-	print "Connected, opening" + player
+	print "Connected, opening", player
 	
 	p.wait()
 	print spaces
