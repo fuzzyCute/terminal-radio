@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-import sys, subprocess, platform
-reload(sys)
-sys.setdefaultencoding('utf8')
+import sys, subprocess, platform, importlib #importlib is needed in py3
+importlib.reload(sys)
+#sys.setdefaultencoding('utf8') #standard default in py3...useless command
 
 genre_list = [] # global list that will store the genres
 
@@ -77,21 +77,21 @@ def installModulesIfNotFound():
 		from tabulate import tabulate
 	except ImportError:
 		list_modules = ['requests','lxml','tabulate']
-		print "To use this radio application you need to install the following modules:"
-		print "requests, lxml and tabulate"
-		print "will you install them??"
-		answer = raw_input("type yes|no -> ")
+		print ("To use this radio application you need to install the following modules:")
+		print ("requests, lxml and tabulate")
+		print ("will you install them??")
+		answer = input("type yes|no -> ")
 		if answer == "yes":
 			for i in list_modules:
 				p = subprocess.Popen(['pip', 'install', i])
 				p.wait()
-			print "Sucess installing all required modules!"
-			time.wait(2)
+			print ("Sucess installing all required modules!")
+			time.sleep(2)
 		elif answer == "no":
-			print "To use this program you'll need to install tabulate"
+			print ("To use this program you'll need to install tabulate")
 			exit()
 		else:
-			print "unknown keyword"
+			print ("unknown keyword")
 			exit()
 
 installModulesIfNotFound()
@@ -101,12 +101,12 @@ from tabulate import tabulate
 
 def getHelp():
 	quit_key = ""
-	print spaces
-	print help_manual
+	print (spaces)
+	print (help_manual)
 	while quit_key != "q":
-		quit_key = raw_input(user_input_prompt)
-	print spaces
-	print start
+		quit_key = input(user_input_prompt)
+	print (spaces)
+	print (start)
 
 
 def selector_menu(list_with_options, select_type, ifradio = ""):
@@ -125,7 +125,7 @@ def selector_menu(list_with_options, select_type, ifradio = ""):
 	
 	
 	while option == "":
-		print spaces
+		print (spaces)
 		table = []
 		i = 1
 		
@@ -141,12 +141,12 @@ def selector_menu(list_with_options, select_type, ifradio = ""):
 				table.append([i, opt[0], opt[1], opt[4], opt[3]])
 				i = i + 1
 			
-		print tabulate(table, headers = header, tablefmt="simple")
-		print "\n", genre
-		print "n for next page, p for previous page, b to return to the start menu"
-		print "PAGE NUMBER:", next_page, "OF", number_options_pages + 1,"PAGES"
-		command = raw_input(user_input_prompt)
-		if command.isdigit() and int(command) in xrange(0, 17):
+		print (tabulate(table, headers = header, tablefmt="simple"))
+		print ("\n", genre)
+		print ("n for next page, p for previous page, b to return to the start menu")
+		print ("PAGE NUMBER:", next_page, "OF", number_options_pages + 1,"PAGES")
+		command = input(user_input_prompt)
+		if command.isdigit() and int(command) in range(0, 17):
 			option = (16*previous_page) + int(command)
 		elif command == "n":
 			if next_page <= number_options_pages:
@@ -162,7 +162,7 @@ def selector_menu(list_with_options, select_type, ifradio = ""):
 			else:
 				return "return_genre"
 		else:
-			print "unknown command"
+			print ("unknown command")
 	if(select_type == "genre"):
 		return list_with_options[option - 1]
 	elif(select_type == "radio"):
@@ -178,8 +178,8 @@ def genres_menu(client_keywords = ""):
 	
 	'''
 	client_keys = client_keywords
-	print spaces
-	print "connecting, please standy....."
+	print (spaces)
+	print ("connecting, please standy.....")
 	
 
 	try:
@@ -187,7 +187,7 @@ def genres_menu(client_keywords = ""):
 		if len(genre_list) == 0:
 			i = 0
 			classes = lxml.html.fromstring(requests.post('https://www.xatworld.com/radio-search/', data={'search' : 'simple' , 'genre' : ''}).text)
-			print "connected, getting genres list..."
+			print ("connected, getting genres list...")
 			for form in classes.xpath('//td[@class="centerTxt"]'):
 				i = i + 1
 				if i == 3:
@@ -198,7 +198,7 @@ def genres_menu(client_keywords = ""):
 		if client_keywords != "":
 			search_list = []
 			for search_genre in genre_list:
-				print search_genre
+				print (search_genre)
 				if search_genre.startswith(client_keywords) or client_keywords in search_genre:
 					search_list.append(search_genre)
 
@@ -213,13 +213,13 @@ def genres_menu(client_keywords = ""):
 	except requests.exceptions.RequestException:
 		if attempt != 0:
 			attempt -=1
-			print "Connection Time out, retrying in 5 seconds..."
-			for i in xrange(5,0,-1):
-				print "retrying in",i
+			print ("Connection Time out, retrying in 5 seconds...")
+			for i in range(5,0,-1):
+				print ("retrying in",i)
 				time.sleep(1)
 			genres_menu(client_keys)
 		else:
-			print "Connection time out, please try again later"
+			print ("Connection time out, please try again later")
 			sys.exit(1)
 	
 
@@ -232,8 +232,8 @@ def radios_menu(genre_name, is_search = ""):
 	
 	name_genre = genre_name
 	is_ser = is_search
-	print spaces
-	print "Getting radios of the genre " + genre_name + ", please standy..."
+	print (spaces)
+	print ("Getting radios of the genre " + genre_name + ", please standy...")
 	
 	try:
 	
@@ -263,13 +263,13 @@ def radios_menu(genre_name, is_search = ""):
 	except requests.exceptions.RequestException:
 		if attempt != 0:
 			attempt -=1
-			print "Connection Time out, retrying in 5 seconds..."
-			for i in xrange(5,0,-1):
-				print "retrying in",i
+			print ("Connection Time out, retrying in 5 seconds...")
+			for i in range(5,0,-1):
+				print ("retrying in",i)
 				time.sleep(1)
 			radios_menu(name_genre,is_ser)
 		else:
-			print "Connection time out, please try again later"
+			print ("Connection time out, please try again later")
 			sys.exit(1)
 	
 
@@ -281,8 +281,8 @@ def radio_get_ip(id_radio):
 	Ensure: the http link of that radio id
 	'''
 	id_rad = id_radio
-	print spaces
-	print "Connecting to radio, please standy..."
+	print (spaces)
+	print ("Connecting to radio, please standy...")
 	try:
 		ips = []
 		for ip in json.loads(requests.post('https://www.xatworld.com/plugins/radio-search/getip.php?JsHttpRequest=0-xml', data={'id' : str(id_radio)}).text)['js']['ip'].split():
@@ -292,13 +292,13 @@ def radio_get_ip(id_radio):
 	except requests.exceptions.RequestException:
 		if attempt != 0:
 			attempt -=1
-			print "Connection Time out, retrying in 5 seconds..."
-			for i in xrange(5,0,-1):
-				print "retrying in",i
+			print ("Connection Time out, retrying in 5 seconds...")
+			for i in range(5,0,-1):
+				print ("retrying in",i)
 				time.sleep(1)
 			radio_get_ip(id_rad)
 		else:
-			print "Connection time out, please try again later"
+			print ("Connection time out, please try again later")
 			sys.exit(1)
 	
 def play_radio(radio_ip):
@@ -314,18 +314,18 @@ def play_radio(radio_ip):
 		player = "Windows Music Player"
 		
 	
-	print "Connected, opening", player
+	print ("Connected, opening", player)
 	
 	p.wait()
-	print spaces
-	print start
+	print (spaces)
+	print (start)
 
 def signal_handler(signal, frame):
 	global exit_program
 	if exit_program == 0:
-		print "press ctrl + c again to exit"
+		print ("press ctrl + c again to exit")
 		exit_program = exit_program + 1
 	else:
-		print spaces
-		print "BYE :) see you around!"
+		print (spaces)
+		print ("BYE :) see you around!")
 		sys.exit(0)
