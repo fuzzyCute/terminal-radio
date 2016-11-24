@@ -2,8 +2,8 @@
 #-*- coding:utf-8 -*-
 
 __version__ = "0.0.over9000_zeroez.1"
-__author__ = "fuzzynotthatCute"
-__license__ = "OpenyourassSource"
+__author__ = "fuzzyCute"
+__license__ = "OpenSource"
 
 import radio_programming as radio, signal
 
@@ -44,14 +44,51 @@ while True:
 				print (radio.start)
 		
 		# SEARCH BY GENDER OR RADIO MENU
-		elif user_input.startswith("search genre"):
+		elif user_input.startswith("search"):
 			user_input = user_input.split()
-			genre = radio.genres_menu(user_input[2])
 			if user_input[1] == "genre":
-				id_radio = radio.radios_menu(genre)
-				ip = radio.radio_get_ip(id_radio)
-				radio.play_radio(ip)
-				print ("teste no radio")
+				keywords = radio.genres_menu(' '.join(user_input[2:]).title())
+				if keywords == 0:
+					print (radio.spaces)
+					print (radio.start)
+					print ("No genres with the keyword:", ' '.join(user_input[2:]).title(), "try something else")
+				elif keywords != "home":
+					id_radio = radio.radios_menu('genre',keywords)
+					if id_radio == 0:
+						print (radio.spaces)
+						print (radio.start)
+						print ("No radios available for this genre at the moment, please try another one")
+					elif id_radio != "return_genre":
+						ip = radio.radio_get_ip(id_radio)
+						radio.play_radio(ip)
+					else:
+						id_radio = ""
+						keywords = ""
+						print (radio.spaces)
+						print (radio.start)
+				else:
+					keywords = ""
+					print (radio.spaces)
+					print (radio.start)
+					
+			elif user_input[1] == "radio":
+				id_radio = radio.radios_menu('keywords', ' '.join(user_input[2:]).title())
+				
+				if id_radio == 0:
+					print (radio.spaces)
+					print (radio.start)
+					print ("No radios available for the keyword", ' '.join(user_input[2:].title()), "try something else")
+				elif id_radio != "return_genre":
+					ip = radio.radio_get_ip(id_radio)
+					radio.play_radio(ip)
+				
+				else:
+					id_radio = ""
+					keywords = ""
+					print (radio.spaces)
+					print (radio.start)
+			else:
+				print ("unknow search inputs")
 	
 		elif user_input == radio.start_commands[4]:
 			print ("see you around")

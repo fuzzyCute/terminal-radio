@@ -38,6 +38,7 @@ __        _______ _     ____ ___  __  __ _____   _____ ___
   |_| |_| |_|_____| |_| \_\/_/   \_\____/___\___/ 
                                                        
 Type search genre *genre here* for genre search
+Type search radio *name here* for a radio search
 Type genres to see all possible genres
 Type help for help documentation
 Type exit to quit application
@@ -83,7 +84,7 @@ def installModulesIfNotFound():
 		answer = input("type yes|no -> ")
 		if answer == "yes":
 			for i in list_modules:
-				p = subprocess.Popen(['pip', 'install', i])
+				p = subprocess.Popen(['pip3', 'install', i])
 				p.wait()
 			print ("Sucess installing all required modules!")
 			time.sleep(2)
@@ -109,7 +110,7 @@ def getHelp():
 	print (start)
 
 
-def selector_menu(list_with_options, select_type, ifradio = ""):
+def selector_menu(list_with_options, select_type, user_content=""):
 
 	number_options_pages = int(len(list_with_options) / 16)
 	header = []
@@ -118,10 +119,6 @@ def selector_menu(list_with_options, select_type, ifradio = ""):
 	option = ""
 	command = ""
 	genre = ""
-	if ifradio != "":
-		genre = "Please Select a Radio. Radio Genre = " +  ifradio
-	else:
-		genre = "Please Select a genre"
 	
 	
 	while option == "":
@@ -131,12 +128,14 @@ def selector_menu(list_with_options, select_type, ifradio = ""):
 		
 		if select_type == "genre":
 			header = ["ID", "GENRE NAME"]
+			genre = "Please Select a genre"
 			for opt in list_with_options[(previous_page*16):(16*next_page)]:
 				table.append([i,opt])
 				i = i + 1
 		
 		elif select_type == "radio":
 			header = ["ID","NAME", "NOW PLAYING","LISTENERES", "BITRATE"]
+			genre = "Please Select a Radio."
 			for opt in list_with_options[(previous_page*16):(16*next_page)]:
 				table.append([i, opt[0], opt[1], opt[4], opt[3]])
 				i = i + 1
@@ -198,10 +197,11 @@ def genres_menu(client_keywords = ""):
 		if client_keywords != "":
 			search_list = []
 			for search_genre in genre_list:
-				print (search_genre)
 				if search_genre.startswith(client_keywords) or client_keywords in search_genre:
 					search_list.append(search_genre)
-
+			if len(search_list) == 0:
+				return 0
+				
 			option = selector_menu(search_list, "genre")
 		
 		else:
@@ -223,24 +223,20 @@ def genres_menu(client_keywords = ""):
 			sys.exit(1)
 	
 
-def radios_menu(genre_name, is_search = ""):
+def radios_menu(type_radio, content_radio):
 	'''
 	creates a list of lists with all the radios of a certanint genre
 	Requires: a string with the genre name
 	Ensures: All possible radios of that genre
 	'''
 	
-	name_genre = genre_name
-	is_ser = is_search
+	type_recovery = type_radio
+	content_recovery = content_radio
 	print (spaces)
-	print ("Getting radios of the genre " + genre_name + ", please standy...")
-	
+	print ("please standy...")
 	try:
-	
 		table_radios = []
-	
-		classes = lxml.html.fromstring(requests.post('https://www.xatworld.com/radio-search/', data={'search' : 'simple' , 'genre' : genre_name}).text)
-
+		classes = lxml.html.fromstring(requests.post('https://www.xatworld.com/radio-search/', data={'search' : 'simple' , type_radio : content_radio}).text)
 		for form in classes.xpath('//td[@class="centerTxt"]'):
 			if len(form) == 16 or len(form) == 15:
 				r_genre = []
@@ -255,9 +251,11 @@ def radios_menu(genre_name, is_search = ""):
 					if 'value' in field.keys() and field.get('value') == 'Get IP':
 						r_genre.append(field.get('onclick').split(", ")[1].replace(')', ''))
 				table_radios.append(r_genre)
+	
 		if len(table_radios) == 0:
 			return 0
-		option = selector_menu(table_radios, "radio", genre_name)
+		option = selector_menu(table_radios, "radio", content_radio)
+	
 		return option
 	
 	except requests.exceptions.RequestException:
