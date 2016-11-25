@@ -5,9 +5,13 @@ import sys, subprocess, platform, importlib #importlib is needed in py3
 importlib.reload(sys)
 #sys.setdefaultencoding('utf8') #standard default in py3...useless command
 
+start_commands = ["genres", "search genre", "search radio" , "help", "exit", "options"] # list of possible commands the user can use
+
 genre_list = [] # global list that will store the genres
 
-start_commands = ["genres", "search genre", "search radio" , "help", "exit", "number of items"] # list of possible commands the user can use
+search_type = "" # for searching type process
+
+id_rad = 0 #id of the radio, used to get the http link for the mplayer
 
 user_input_prompt = "> " # text to promp what the user will write
 
@@ -15,13 +19,15 @@ spaces = "\n" * 100 # use it to give space between options
 
 exit_program = 0 # signal to quit program
 
-search_type = "" # for searching type process
-
-id_rad = 0 #id of the radio, used to get the http link for the mplayer
-
 attempt = 3 # for exceptions errors
 
-number_of_items = 16 # this will be the number of items that will be display, the user can change this value freely, by default this value is 16
+#OPTIONS MENU VARS
+
+options = {'Number of Items Per Page' : 16} #A dict that contains all the options and his values
+
+#Number of Items Per Page that will be display, the user can change this value freely, by default this value is 16
+
+
 
 start = '''		
 
@@ -40,6 +46,7 @@ __        _______ _     ____ ___  __  __ _____   _____ ___
 Type search genre *genre here* for genre search
 Type search radio *name here* for a radio search
 Type genres to see all possible genres
+Type options for options menu
 Type help for help documentation
 Type exit to quit application
 '''
@@ -69,6 +76,14 @@ inside the player, mplayer in this case you can:
 9 to lower your volume
 0 to raise your volume
 q to quit
+
+Type options to go to the options menu where at the moment there is only
+the option number of items
+more to come in the future
+
+to change a value of some option just type the id of that option and then the new value
+i.e: 1 25 
+
 
 press q to return'''
 
@@ -109,10 +124,41 @@ def getHelp():
 	print (spaces)
 	print (start)
 
+def options_menu():
+	global options
+	command = ""
+	msg = ""
+	while command != "b":
+		items = []
+		i = 1
+
+		print (spaces)
+		for key, values in options.items():
+			items.append([i,key,values])
+			i += 1
+		print (tabulate(items, headers = ["ID", "NAME OF OPTION", "VALUES"], tablefmt="simple"))
+		print ("\n")
+		print (msg)
+		print ("Type the id and the new value to update it, b to return home")
+		command = input(user_input_prompt)
+		if command == "":
+			msg = "you need to type something"
+		else:
+			command = command.split()
+			if command[0].isdigit() and int(command[0]) in range(0, len(items) + 1) and len(command) == 2:
+				options[items[int(command[0])- 1][1]] = int(command[1])
+				msg = "Update sucessfull"
+		
+		
+			elif command[0] == "b":
+				break
+			else:
+				msg = "unknown command"
+
 
 def selector_menu(list_with_options, select_type, user_content=""):
 
-	number_options_pages = int(len(list_with_options) / 16)
+	number_options_pages = int(len(list_with_options) / options['Number of Items Per Page'])
 	header = []
 	previous_page = 0
 	next_page = 1
@@ -129,24 +175,24 @@ def selector_menu(list_with_options, select_type, user_content=""):
 		if select_type == "genre":
 			header = ["ID", "GENRE NAME"]
 			genre = "Please Select a genre"
-			for opt in list_with_options[(previous_page*16):(16*next_page)]:
+			for opt in list_with_options[(previous_page*options['Number of Items Per Page']):(options['Number of Items Per Page']*next_page)]:
 				table.append([i,opt])
 				i = i + 1
 		
 		elif select_type == "radio":
 			header = ["ID","NAME", "NOW PLAYING","LISTENERES", "BITRATE"]
 			genre = "Please Select a Radio."
-			for opt in list_with_options[(previous_page*16):(16*next_page)]:
+			for opt in list_with_options[(previous_page*options['Number of Items Per Page']):(options['Number of Items Per Page']*next_page)]:
 				table.append([i, opt[0], opt[1], opt[4], opt[3]])
 				i = i + 1
 			
 		print (tabulate(table, headers = header, tablefmt="simple"))
-		print ("\n", genre)
+		print ("\n" + genre)
 		print ("n for next page, p for previous page, b to return to the start menu")
 		print ("PAGE NUMBER:", next_page, "OF", number_options_pages + 1,"PAGES")
 		command = input(user_input_prompt)
-		if command.isdigit() and int(command) in range(0, 17):
-			option = (16*previous_page) + int(command)
+		if command.isdigit() and int(command) in range(0, options['Number of Items Per Page']+1):
+			option = (options['Number of Items Per Page']*previous_page) + int(command)
 		elif command == "n":
 			if next_page <= number_options_pages:
 				next_page = next_page + 1						

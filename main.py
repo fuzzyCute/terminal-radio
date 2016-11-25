@@ -20,11 +20,11 @@ while True:
 		if user_input == radio.start_commands[3]:
 			radio.getHelp()
 		
-		# GENDERS MENU
+		# GENRES MENU
 		elif user_input == radio.start_commands[0]:
 			genre = radio.genres_menu()
 			if genre != "home":
-				id_radio = radio.radios_menu(genre)
+				id_radio = radio.radios_menu("genre",genre)
 				if id_radio == 0:
 					print (radio.spaces)
 					print (radio.start)
@@ -89,6 +89,11 @@ while True:
 					print (radio.start)
 			else:
 				print ("unknow search inputs")
+		
+		elif user_input == radio.start_commands[5]:
+			radio.options_menu()
+			print (radio.spaces)
+			print (radio.start)
 	
 		elif user_input == radio.start_commands[4]:
 			print ("see you around")
