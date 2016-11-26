@@ -3,7 +3,6 @@
 
 import sys, subprocess, platform, importlib #importlib is needed in py3
 importlib.reload(sys)
-#sys.setdefaultencoding('utf8') #standard default in py3...useless command
 
 start_commands = ["genres", "search genre", "search radio" , "help", "exit", "options"] # list of possible commands the user can use
 
@@ -23,7 +22,7 @@ attempt = 3 # for exceptions errors
 
 #OPTIONS MENU VARS
 
-options = {'Number of Items Per Page' : 16} #A dict that contains all the options and his values
+options = {'Number of Items Per Page' : 16, 'Cache Size' : 320} #A dict that contains all the options and his values
 
 #Number of Items Per Page that will be display, the user can change this value freely, by default this value is 16
 
@@ -351,7 +350,7 @@ def play_radio(radio_ip):
 	p = ""
 	player = ""
 	if osType == 'Linux' or osType == "Ios":
-		p = subprocess.Popen(['mplayer', radio_ip, '-vo', 'null', '-ao', 'alsa','-quiet'])
+		p = subprocess.Popen(['mplayer', radio_ip, '-vo', 'null', '-ao', 'alsa','-quiet','-cache',str(options['Cache Size'])])
 		player = "mplayer"
 	elif osType == 'Windows':
 		p = subprocess.Popen('C:\\Program Files (x86)\\Windows Media Player\\wmplayer.exe /play /close "' + radio_ip +'"')
