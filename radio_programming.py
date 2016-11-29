@@ -286,8 +286,8 @@ def radios_menu(type_radio, content_radio):
 			if len(form) == 16 or len(form) == 15:
 				r_genre = []
 				text = [line for line in form.text_content().split('\n') if line.strip() != '']
-				r_genre.append(text[0].lstrip()[9:35])
-				r_genre.append(text[1].lstrip()[13:33])
+				r_genre.append(text[0].lstrip()[9:40])
+				r_genre.append(text[1].lstrip()[13:49])
 				r_genre.append(text[3].lstrip()[7:])
 				r_genre.append(text[4].lstrip()[9:])
 				r_genre.append(text[5].lstrip()[12:])
@@ -299,18 +299,20 @@ def radios_menu(type_radio, content_radio):
 	
 		if len(table_radios) == 0:
 			return 0
+		
 		option = selector_menu(table_radios, "radio", content_radio)
 	
 		return option
 	
 	except requests.exceptions.RequestException:
+		global attempt
 		if attempt != 0:
 			attempt -=1
 			print ("Connection Time out, retrying in 5 seconds...")
 			for i in range(5,0,-1):
 				print ("retrying in",i)
 				time.sleep(1)
-			radios_menu(name_genre,is_ser)
+			radios_menu(type_recovery,content_recovery)
 		else:
 			print ("Connection time out, please try again later")
 			sys.exit(1)
@@ -333,6 +335,7 @@ def radio_get_ip(id_radio):
 		return ips[0]
 	
 	except requests.exceptions.RequestException:
+		global attempt
 		if attempt != 0:
 			attempt -=1
 			print ("Connection Time out, retrying in 5 seconds...")
@@ -350,13 +353,33 @@ def play_radio(radio_ip):
 	p = ""
 	player = ""
 	if osType == 'Linux' or osType == "Ios":
-		p = subprocess.Popen(['mplayer', radio_ip, '-vo', 'null', '-ao', 'alsa','-quiet','-cache',str(options['Cache Size'])])
-		player = "mplayer"
+		try:
+			p = subprocess.Popen(['mplayer', radio_ip, '-vo', 'null', '-ao', 'alsa','-quiet','-cache',str(options['Cache Size'])])
+			player = "mplayer"
+		except:
+			print ("You need to have mplayer installed to use this radio application")
+			print ("Would you like to install it now?")
+			answer = input("type yes|no -> ")
+			if answer == "yes":
+				p = subprocess.Popen(['sudo', 'apt-get', 'install', 'mplayer'])
+				p.wait()
+				print ("Sucess installing all required modules!")
+				time.sleep(2)
+				p = subprocess.Popen(['mplayer', radio_ip, '-vo', 'null', '-ao', 'alsa','-quiet','-cache',str(options['Cache Size'])])
+			elif answer == "no":
+				print ("To use this radio you need the player 'mplayer', please install it")
+				exit()
+			else:
+				print ("unknown keyword")
+				exit()
 	elif osType == 'Windows':
-		p = subprocess.Popen('C:\\Program Files (x86)\\Windows Media Player\\wmplayer.exe /play /close "' + radio_ip +'"')
-		player = "Windows Music Player"
+		try:
+			p = subprocess.Popen('C:\\Program Files (x86)\\Windows Media Player\\wmplayer.exe /play /close "' + radio_ip +'"')
+			player = "Windows Music Player"
+		except:
+			print("Something went wrong while opening Windows Music Player, do you have it installed on your computer?")
+			exit()
 		
-	
 	print ("Connected, opening", player)
 	
 	p.wait()
@@ -366,7 +389,7 @@ def play_radio(radio_ip):
 def signal_handler(signal, frame):
 	global exit_program
 	if exit_program == 0:
-		print ("press ctrl + c again to exit")
+		print ("press ctrl + C again to exit")
 		exit_program = exit_program + 1
 	else:
 		print (spaces)
