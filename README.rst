@@ -9,6 +9,9 @@ It was a challenging project but i enjoy it to the max!
 I hope you enjoy this program and be free to mess around with it :)
 
 To run this program all you have to do is:
+
 If you're on Linux -> Run ./radio.sh
-If you're on windows -> Type python main.py
+
+If you're on windows -> Type python3 main.py
+
 If you're on a mac -> forgive me if it gives you some errors, don't have a mac
