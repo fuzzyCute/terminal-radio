@@ -101,7 +101,6 @@ def installModulesIfNotFound():
 				p = subprocess.Popen(['pip3', 'install', i])
 				p.wait()
 			print ("Sucess installing all required modules!")
-			time.sleep(2)
 		elif answer == "no":
 			print ("To use this program you'll need to install tabulate")
 			exit()
@@ -287,7 +286,7 @@ def radios_menu(type_radio, content_radio):
 				r_genre = []
 				text = [line for line in form.text_content().split('\n') if line.strip() != '']
 				r_genre.append(text[0].lstrip()[9:40])
-				r_genre.append(text[1].lstrip()[13:49])
+				r_genre.append(text[1].lstrip()[13:30])
 				r_genre.append(text[3].lstrip()[7:])
 				r_genre.append(text[4].lstrip()[9:])
 				r_genre.append(text[5].lstrip()[12:])
