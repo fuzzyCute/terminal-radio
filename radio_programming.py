@@ -4,9 +4,13 @@
 import sys, subprocess, platform, importlib #importlib is needed in py3
 importlib.reload(sys)
 
-start_commands = ["genres", "search genre", "search radio" , "help", "exit", "options"] # list of possible commands the user can use
+start_commands = ["genres", "search genre", "search radio" , "help", "exit", "options", "recent radios", "last radio"] # list of possible commands the user can use
 
 genre_list = [] # global list that will store the genres
+
+previous_radio = [] # radio that was last played
+
+cache_radios = [] # this will load all saved radios
 
 search_type = "" # for searching type process
 
@@ -22,11 +26,11 @@ attempt = 3 # for exceptions errors
 
 #OPTIONS MENU VARS
 
-options = {'Number of Items Per Page' : 16, 'Cache Size' : 320} #A dict that contains all the options and his values
-
-#Number of Items Per Page that will be display, the user can change this value freely, by default this value is 16
-
-
+options = {'Number of Items Per Page' : 16, 'Cache Size' : 320, 'Radio Cache' : 10}
+#A dict that contains all the options and his values
+#Number of Items  -> Items Per Page that will be display, the user can change this value freely, by default this value is 16
+#Cache Size -> The player cache size , the default value is 320
+#Radio Cache -> store the number of radios that can be in cache, default value is 10
 
 start = '''		
 
@@ -45,10 +49,12 @@ __        _______ _     ____ ___  __  __ _____   _____ ___
 Type search genre *genre here* for genre search
 Type search radio *name here* for a radio search
 Type genres to see all possible genres
+Type recent radios to see recent radios
 Type options for options menu
 Type help for help documentation
 Type exit to quit application
 '''
+
 
 help_manual = '''
 This radio connects to the website https://www.xatworld.com/radio-search/
@@ -80,8 +86,16 @@ Type options to go to the options menu where at the moment there is only
 the option number of items
 more to come in the future
 
+------------------------------------------------------------------
+OPTION MENU
+------------------------------------------------------------------
+Radio Cache: Change the number of radios you save for later use
+Number of items per page: Tell the number of radios that shows in each page
+Cache size: If you're on linux, mplayer allows you to define a cache size
+
 to change a value of some option just type the id of that option and then the new value
-i.e: 1 25 
+i.e: 1 25
+
 
 
 press q to return'''
@@ -110,8 +124,58 @@ def installModulesIfNotFound():
 
 installModulesIfNotFound()
 
-import requests, lxml.html, json, time, os
+import requests, lxml.html, json, time, os, csv, copy
 from tabulate import tabulate
+
+def create_files():
+	#get path were the main file is
+	current_path = os.path.abspath(os.path.dirname(__file__))
+	
+	if not os.path.isdir(current_path + "/options_radios/"):
+		os.makedirs(current_path+"/options_radios/")
+	if not os.path.exists(current_path + "/options_radios/Options.csv"):
+		with open(current_path + "/options_radios/Options.csv", 'wt') as csvfile:
+			writer = csv.writer(csvfile, delimiter=',')
+			writer.writerow(('Name of Options', 'Value'))
+			for key, values in options.items():
+				writer.writerow((key, values))
+	else:
+		with open(current_path + "/options_radios/Options.csv", 'rt') as csvfile:
+			reader = csv.reader(csvfile)
+			next(reader)
+			for row in reader:
+				options[row[0]] = int(row[1])
+
+	if not os.path.exists(current_path + "/options_radios/Recent_Radios.csv"):
+		with open(current_path + "/options_radios/Recent_Radios.csv", 'wt') as csvfile:
+			writer = csv.writer(csvfile, delimiter=',')
+			writer.writerow (('Radio name', 'Genre','BitRate' , 'ID Number','Number Times Heard'))
+	else:
+		with open(current_path + "/options_radios/Recent_Radios.csv", 'rt') as csvfile:
+			reader = csv.reader(csvfile)
+			data = list(reader)
+			row_count = len(data)
+			if row_count > 1:
+				data.pop(0)
+				sorted(data, key=lambda views: views[4])
+				for row in data:
+					cache_radios.append(row)
+
+# TO UPDATE VALUES
+def update_values(type_update):
+	current_path = os.path.abspath(os.path.dirname(__file__))
+	if type_update == "options":
+		with open(current_path + "/options_radios/Options.csv", 'wt') as csvfile:
+			writer = csv.writer(csvfile, delimiter=',')
+			writer.writerow(('Name of Options', 'Value'))
+			for key, values in options.items():
+				writer.writerow((key, int(values)))
+	elif type_update == "radio":
+		with open(current_path + "/options_radios/Recent_Radios.csv", 'wt') as csvfile:
+			writer = csv.writer(csvfile, delimiter=',')
+			writer.writerow (('Radio name', 'Genre','BitRate' , 'ID Number','Number Times Heard'))
+			for row in cache_radios:
+				writer.writerow(row)
 
 def getHelp():
 	quit_key = ""
@@ -145,9 +209,8 @@ def options_menu():
 			command = command.split()
 			if command[0].isdigit() and int(command[0]) in range(0, len(items) + 1) and len(command) == 2:
 				options[items[int(command[0])- 1][1]] = int(command[1])
+				update_values("options")
 				msg = "Update sucessfull"
-		
-		
 			elif command[0] == "b":
 				break
 			else:
@@ -193,7 +256,7 @@ def selector_menu(list_with_options, select_type, user_content=""):
 			option = (options['Number of Items Per Page']*previous_page) + int(command)
 		elif command == "n":
 			if next_page <= number_options_pages:
-				next_page = next_page + 1						
+				next_page = next_page + 1
 				previous_page = previous_page + 1
 		elif command == "p":
 			if previous_page != 0:
@@ -209,8 +272,22 @@ def selector_menu(list_with_options, select_type, user_content=""):
 	if(select_type == "genre"):
 		return list_with_options[option - 1]
 	elif(select_type == "radio"):
-		return list_with_options[option -1][5]
+		result = list_with_options[option -1]
+		j = 0
+		for i in cache_radios:
+			if result[0] in i:
+				cache_radios[cache_radios.index(i)][4] = int(cache_radios[cache_radios.index(i)][4]) + 1
+				j += 1
+		if j == 0:
+			if len(cache_radios) <= options['Radio Cache']:
+				cache_radios.append([result[0], result[2], result[3], result[5], 1])
+			else:
+				cache_radios[len(cache_radios) - 1] = [result[0], result[2], result[3], result[5], 1]
 		
+		global previous_radio
+		previous_radio = [result[0],result[5]]
+		update_values("radio")
+		return result[5]
 
 
 def genres_menu(client_keywords = ""):
@@ -384,6 +461,33 @@ def play_radio(radio_ip):
 	p.wait()
 	print (spaces)
 	print (start)
+
+def recent_radios():
+	global previous_radio
+	get_ip = ""
+	print (spaces)
+	j = 1
+	new_list = copy.deepcopy(cache_radios)
+	
+	for i in new_list:
+		i.insert(0, j)
+		j += 1
+	while get_ip == "" or command == "b":
+		print (tabulate(new_list, headers = ['Index','Radio name', 'Genre','BitRate' , 'ID Number','Number Times Heard'], tablefmt="simple"))
+		print ("\n")
+		print ("Please Select An Index, type b return to the main menu")
+		command = input(user_input_prompt)
+		if command.isdigit() and int(command) in range(0, len(cache_radios) + 1):
+			get_ip = radio_get_ip(cache_radios[int(command) - 1][3])
+			cache_radios[int(command) - 1][4] = int(cache_radios[int(command) - 1 ][4]) + 1
+			update_values("radio")
+			previous_radio = [cache_radios[int(command) - 1][0],cache_radios[int(command) - 1][3]]
+			return get_ip
+		elif command == "b":
+			return 0
+		else:
+			print(spaces)
+			print("Invalid Index")
 
 def signal_handler(signal, frame):
 	global exit_program

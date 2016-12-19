@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-__version__ = "0.0.over9000_zeroez.1"
+__version__ = "0.0.over9000_zeroez.1.2"
 __author__ = "fuzzyCute"
 __license__ = "OpenSource"
 
@@ -9,11 +9,16 @@ import radio_programming as radio, signal
 
 signal.signal(signal.SIGINT, radio.signal_handler)
 
+radio.create_files()
+
 print (radio.spaces)
 
 print (radio.start)
 
 while True:
+	if len(radio.previous_radio) != 0:
+		print("Last Radio Played:",radio.previous_radio[0])
+		print("Type 'last radio' to play last radio")
 	user_input = input(radio.user_input_prompt)
 	if user_input in radio.start_commands or user_input.startswith("search genre") or user_input.startswith("search radio"):
 		# HELP MENU
@@ -102,6 +107,21 @@ while True:
 			print (radio.spaces)
 			print ("see you around")
 			radio.sys.exit(0)
+		
+		elif user_input == radio.start_commands[6]:
+			option = radio.recent_radios()
+			if option != 0:
+				radio.play_radio(option)
+			else:
+				print (radio.spaces)
+				print (radio.start)
+		
+		elif user_input == radio.start_commands[7]:
+			if len(radio.previous_radio) != 0:
+				ip = radio.radio_get_ip(radio.previous_radio[1])
+				radio.play_radio(ip)
+			else:
+				print("No Previous Radio Found")
 		
 	else:
 		print (radio.spaces)
