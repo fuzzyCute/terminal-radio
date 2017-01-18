@@ -157,7 +157,6 @@ def create_files():
 			row_count = len(data)
 			if row_count > 1:
 				data.pop(0)
-				sorted(data, key=lambda views: views[4])
 				for row in data:
 					cache_radios.append(row)
 
@@ -171,6 +170,7 @@ def update_values(type_update):
 			for key, values in options.items():
 				writer.writerow((key, int(values)))
 	elif type_update == "radio":
+		cache_radios.sort(key = lambda x: int(x[4]), reverse = True)
 		with open(current_path + "/options_radios/Recent_Radios.csv", 'wt') as csvfile:
 			writer = csv.writer(csvfile, delimiter=',')
 			writer.writerow (('Radio name', 'Genre','BitRate' , 'ID Number','Number Times Heard'))
@@ -279,7 +279,7 @@ def selector_menu(list_with_options, select_type, user_content=""):
 				cache_radios[cache_radios.index(i)][4] = int(cache_radios[cache_radios.index(i)][4]) + 1
 				j += 1
 		if j == 0:
-			if len(cache_radios) <= options['Radio Cache']:
+			if len(cache_radios) < options['Radio Cache']:
 				cache_radios.append([result[0], result[2], result[3], result[5], 1])
 			else:
 				cache_radios[len(cache_radios) - 1] = [result[0], result[2], result[3], result[5], 1]
@@ -457,7 +457,6 @@ def play_radio(radio_ip):
 			exit()
 		
 	print ("Connected, opening", player)
-	
 	p.wait()
 	print (spaces)
 	print (start)
@@ -468,12 +467,12 @@ def recent_radios():
 	print (spaces)
 	j = 1
 	new_list = copy.deepcopy(cache_radios)
-	
 	for i in new_list:
+		i.pop(3)
 		i.insert(0, j)
 		j += 1
 	while get_ip == "" or command == "b":
-		print (tabulate(new_list, headers = ['Index','Radio name', 'Genre','BitRate' , 'ID Number','Number Times Heard'], tablefmt="simple"))
+		print (tabulate(new_list, headers = ['Index','Radio name', 'Genre','BitRate','Times Heard'], tablefmt="simple"))
 		print ("\n")
 		print ("Please Select An Index, type b return to the main menu")
 		command = input(user_input_prompt)
