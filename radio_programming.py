@@ -156,8 +156,7 @@ def create_files():
 		with open(current_path + "/options_radios/Recent_Radios.csv", 'rt') as csvfile:
 			reader = csv.reader(csvfile)
 			data = list(reader)
-			row_count = len(data)
-			if row_count > 1:
+			if len(data) > 1:
 				data.pop(0)
 				for row in data:
 					cache_radios.append(row)
