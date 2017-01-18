@@ -105,14 +105,16 @@ def installModulesIfNotFound():
 		import requests, lxml.html, json, os, time
 		from tabulate import tabulate
 	except ImportError:
-		list_modules = ['requests','lxml','tabulate']
+		list_modules = ['requests','tabulate']
 		print ("To use this radio application you need to install the following modules:")
 		print ("requests, lxml and tabulate")
 		print ("will you install them??")
 		answer = input("type yes|no -> ")
 		if answer == "yes":
+			p = subprocess.Popen(['sudo', 'apt-get', 'install', 'python3-lxml'])
+			p.wait()
 			for i in list_modules:
-				p = subprocess.Popen(['pip3', 'install', i])
+				p = subprocess.Popen(['sudo', 'pip3', 'install', i])
 				p.wait()
 			print ("Sucess installing all required modules!")
 		elif answer == "no":
